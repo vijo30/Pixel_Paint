@@ -54,7 +54,7 @@ if not glfw.init():
   raise Exception("glfw can not be initialized!")
 
 # create window
-window = glfw.create_window(1280, 720, "My OpenGL window", None, None)
+window = glfw.create_window(720, 720, "My OpenGL window", None, None)
 
 # check if window was created
 if not window:
