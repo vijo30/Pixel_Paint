@@ -4,6 +4,7 @@ from OpenGL.GL.shaders import compileProgram, compileShader
 import numpy as np
 import pyrr
 from PIL import Image
+import math
 
 vertex_src = """
 # version 330
@@ -13,13 +14,14 @@ layout(location = 1) in vec2 a_texture;
 
 uniform mat4 model; // combined translation and rotation
 uniform mat4 projection;
+uniform mat4 view;
 
 out vec3 v_color;
 out vec2 v_texture;
 
 void main()
 {
-    gl_Position = projection * model * vec4(a_position, 1.0);
+    gl_Position = projection * view * model * vec4(a_position, 1.0);
     v_texture = a_texture;
     
     //v_texture = 1 - a_texture;                      // Flips the texture vertically and horizontally
@@ -159,12 +161,20 @@ glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 projection = pyrr.matrix44.create_perspective_projection_matrix(45, 1280/720, 0.1, 100)
-translation = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, -3]))
+translation = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, 0]))
+# view = pyrr.matrix44.create_from_translation(pyrr.Vector3([-1, 0, 0]))
+
+# eye, target, up
+# view = pyrr.matrix44.create_look_at(pyrr.Vector3([1, 0, 3]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 1, 0]))
+
 
 model_loc = glGetUniformLocation(shader, "model")
 proj_loc = glGetUniformLocation(shader, "projection")
+view_loc = glGetUniformLocation(shader, "view")
 
 glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
+glUniformMatrix4fv(model_loc, 1, GL_FALSE, translation)
+# glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
 
 # the main loop
 while not glfw.window_should_close(window):
@@ -172,15 +182,12 @@ while not glfw.window_should_close(window):
   
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT) # change window color
   
-  rot_x = pyrr.Matrix44.from_x_rotation(0.5 * glfw.get_time())
-  rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time())
+  camX = math.sin(glfw.get_time()) * 10
+  camZ = math.cos(glfw.get_time()) * 10
   
-  rotation = pyrr.matrix44.multiply(rot_x, rot_y)
-  model = pyrr.matrix44.multiply(rotation, translation)
+  view = pyrr.matrix44.create_look_at(pyrr.Vector3([camX, 5.0, camZ]), pyrr.Vector3([0.0, 0.0, 0.0]), pyrr.Vector3([0.0, 1.0, 0.0]))
   
-  #glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x * rot_y)
-  #glUniformMatrix4fv(rotation_loc, 1, GL_FALSE, rot_x @ rot_y)
-  glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
+  glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
    
   glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
   
