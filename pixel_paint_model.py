@@ -6,6 +6,7 @@ import grafica.easy_shaders as es
 import grafica.gpu_shape as gs
 from OpenGL.GL import *
 from typing import List
+import glfw
 
 # A simple class container to store vertices and indices that define a shape
 class Shape:
@@ -103,6 +104,11 @@ def createGrid(Nx, Ny):
 
     return Shape(vertices, indices)
 
+def mouse_pos(window):
+  x = glfw.get_cursor_pos(window)[0]/600
+  y = glfw.get_cursor_pos(window)[1]/600
+  return (x, y)
+
 
 class Grid:
   
@@ -132,7 +138,18 @@ class Grid:
   
   def draw(self, pipeline):
       drawSceneGraphNodeForLines(self.model, pipeline, 'transform')
-      
+    
+  def draw_quad(self, r, g, b, pipeline, x, y, n):
+    gpu_quad = create_gpu(bs.createColorQuad(r, g, b), pipeline)
+    
+    quads = sg.SceneGraphNode('quads')
+    quads.transform = tr.matmul([tr.translate(x, y, 0), tr.scale(2/n+1, 2/n+1, 1)])
+    quads.childs += quads.childs.append(gpu_quad)
+    sg.drawSceneGraphNode(quads, pipeline, 'transform')
+    
+
+
+  
   def modifyModel(self):
     pass
       

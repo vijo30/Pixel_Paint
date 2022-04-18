@@ -1,4 +1,4 @@
-from pixel_paint_model import Grid, Palette
+from pixel_paint_model import *
 import glfw
 import sys
 from typing import Union
@@ -26,8 +26,11 @@ class Controller:
         sys.exit()
         
     elif key == glfw.MOUSE_BUTTON_1 and action == glfw.PRESS and (glfw.get_cursor_pos(window)[0] < 590 and glfw.get_cursor_pos(window)[1] > 90):
-      # Color
+      self.grid.draw_quad(1, 0, 0, mouse_pos(window)[0], mouse_pos(window)[1], 16)
+    
+    elif key == glfw.MOUSE_BUTTON_1 and action == glfw.PRESS:
       pass
+      # Pick color only if you don't already have picked it
     
     elif key == glfw.KEY_S and action == glfw.PRESS:
       # Save the raster image

@@ -59,7 +59,8 @@ transform_loc = glGetUniformLocation(shader, "transform")
 
 glClearColor(0.5, 0.5, 0.5, 0.1) # Window colors
 
-
+# Connecting the callback function 'on_key' to handle keyboard events
+glfw.set_key_callback(window, controller.on_key)
 
 # Make objects
 W = 16 # Cantidad de columnas 
@@ -86,9 +87,8 @@ while not glfw.window_should_close(window):
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT) # Change window color
 
   palette.draw(pipeline)
-  grid.change_actual_color()
   grid.draw(pipeline)
-  
+  grid.draw_quad(grid, 1, 0, 0, mouse_pos(window)[0], mouse_pos(window)[1], 16)
   glfw.swap_buffers(window)
   
 # Terminate glfw
