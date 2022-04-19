@@ -31,3 +31,5 @@ class IndirectRGBRasterDisplay(DirectRGBRasterDisplay):
             it.iternext()
 
         super().setMatrix(imgData)
+        
+    

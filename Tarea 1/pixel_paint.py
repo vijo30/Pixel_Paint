@@ -184,8 +184,10 @@ class Controller:
     def __init__(self):
         self.fillPolygon = True
         self.showGrid = True
-        self.drawPalette = True
+        self.leftClickOn = False
+        self.mousePos = (0.0, 0.0)
 
+controller = Controller()
 
 def createGPUTextureQuad():
     vertices = [
@@ -236,6 +238,49 @@ def on_key(window, key, scancode, action, mods):
 
     elif key == glfw.KEY_ESCAPE:
         glfw.set_window_should_close(window, True)
+        
+def on_key(window, key, scancode, action, mods):
+    if action == glfw.PRESS:
+        if key == glfw.KEY_ESCAPE:
+            glfw.set_window_should_close(window, True)
+
+
+
+
+
+def cursor_pos_callback(window, x, y):
+    global controller
+    controller.mousePos = (x, y)
+
+
+def mouse_button_callback(window, button, action, mods):
+    global controller
+
+    """
+    glfw.MOUSE_BUTTON_1: left click
+    glfw.MOUSE_BUTTON_2: right click
+    glfw.MOUSE_BUTTON_3: scroll click
+    """
+    if (action == glfw.PRESS or action == glfw.REPEAT):
+        if (button == glfw.MOUSE_BUTTON_1):
+            controller.leftClickOn = True
+            print("Mouse click - button 1")
+            
+
+        if (button == glfw.MOUSE_BUTTON_2):
+            print("Mouse click - button 2:", glfw.get_cursor_pos(window))
+
+        if (button == glfw.MOUSE_BUTTON_3):
+            print("Mouse click - button 3")
+
+    elif (action == glfw.RELEASE):
+        if (button == glfw.MOUSE_BUTTON_1):
+            controller.leftClickOn = False
+
+
+def scroll_callback(window, x, y):
+    print("Mouse scroll:", x, y)
+
 
 
 
@@ -249,57 +294,19 @@ def setMatrix(matrix):
 
     imgData = matrix.reshape((matrix.shape[0] * matrix.shape[1], 3))
     
-def create_gpu(shape, pipeline):
-    gpu = es.GPUShape().initBuffers()
-    pipeline.setupVAO(gpu)
-    gpu.fillBuffers(shape.vertices, shape.indices, GL_STATIC_DRAW)
-    return gpu
 
 
-class Palette:
-  
-  
-  def __init__(self, pipeline):
-    gpu_canvas_quad = create_gpu(bs.createColorQuad(1.0, 1.0, 1.0), pipeline)
-    gpu_color_quad = create_gpu(bs.createColorQuad(0.5, 0.5, 0.5), pipeline)
-    gpu_color2_quad = create_gpu(bs.createColorQuad(1.0, 0.0, 0.0), pipeline)
- 
-    
-    canvas = sg.SceneGraphNode('canvas')
-    canvas.transform = tr.scale(0.3, 2, 1)
-    canvas.childs += [gpu_canvas_quad]
-    
-    color = sg.SceneGraphNode('color')
-    color.transform = tr.matmul([tr.translate(0, 0.8, 0), tr.scale(0.2, 0.1, 1)])
-    color.childs += [gpu_color_quad]
-
-    color2 = sg.SceneGraphNode('color2')
-    color2.transform = tr.matmul([tr.translate(0, 0.65, 0), tr.scale(0.2, 0.1, 1)])
-    color2.childs += [gpu_color2_quad]
-    
-    
-    
-    palette = sg.SceneGraphNode('palette')
-    palette.transform = tr.translate(0.85, 0, 0)
-    palette.childs += [canvas, color, color2]
-    
-    transform_palette = sg.SceneGraphNode('paletteTR')
-    transform_palette.transform = tr.identity()
-    transform_palette.childs += [palette]
-    
-    self.model = transform_palette
-    
-  def draw(self, pipeline):
-    sg.drawSceneGraphNode(self.model, pipeline, 'transform')
 
 
+win_height = 600
+win_width = 600
 
 # Initialize glfw
 if not glfw.init():
   raise Exception("glfw can not be initialized!")
 
 
-window = glfw.create_window(600, 600, "Pixel Paint", None, None)
+window = glfw.create_window(win_width, win_height, "Pixel Paint", None, None)
 
 # Check if window was created
 if not window:
@@ -309,8 +316,13 @@ if not window:
 
 
 
+
 glfw.make_context_current(window)
 glfw.set_key_callback(window, on_key)
+glfw.set_cursor_pos_callback(window, cursor_pos_callback)
+glfw.set_mouse_button_callback(window, mouse_button_callback)
+glfw.set_scroll_callback(window, scroll_callback)
+
 
 
 
@@ -318,6 +330,7 @@ glfw.set_key_callback(window, on_key)
 W = 20
 H = 20
 imgData = np.zeros((W, H, 3), dtype=np.uint8)
+imgData[:, :, :] = np.array([237, 140, 140], dtype=np.uint8)
 imgData[0:16, 0:16, :] = np.array([125, 125, 125], dtype=np.uint8)
 imgData[0:4, 0:4, :] = np.array([0, 0, 255], dtype=np.uint8)
 imgData[0:12, 4:8, :] = np.array([255, 0, 0], dtype=np.uint8)
@@ -354,14 +367,22 @@ glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageSize[1], imageSize[0], 0, fo
 
 
 
-controller = Controller()
+
 
 
 
 while not glfw.window_should_close(window):
     glfw.poll_events()
     
-
+    
+    # Getting the mouse location in opengl coordinates
+    mousePosX = 2 * (controller.mousePos[0] - win_width / 2) / win_width
+    mousePosY = 2 * (win_height / 2 - controller.mousePos[1]) / win_height
+    print(mousePosX, mousePosY)
+    
+    if controller.leftClickOn:
+      pass
+    
     if controller.fillPolygon:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 

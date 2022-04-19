@@ -323,8 +323,9 @@ class DirectRGBRasterDisplay:
             glUseProgram(self.pipeline.shaderProgram)
             self.pipeline.drawShape(gpuShape)
 
-            glUseProgram(self.colorPipeline.shaderProgram)
-            self.colorPipeline.drawShape(gpuGrid, GL_LINES)
+            if self.controller.showGrid:
+                glUseProgram(self.colorPipeline.shaderProgram)
+                self.colorPipeline.drawShape(gpuGrid, GL_LINES)
 
             # Once the render is done, buffers are swapped, showing only the complete scene.
             glfw.swap_buffers(self.window)
