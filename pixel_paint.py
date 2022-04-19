@@ -88,7 +88,7 @@ while not glfw.window_should_close(window):
 
   palette.draw(pipeline)
   grid.draw(pipeline)
-  grid.draw_quad(grid, 1, 0, 0, mouse_pos(window)[0], mouse_pos(window)[1], 16)
+
   glfw.swap_buffers(window)
   
 # Terminate glfw

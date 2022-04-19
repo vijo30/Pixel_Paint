@@ -11,6 +11,7 @@ class Controller:
   def __init__(self):
     self.grid = None
     self.palette = None
+    self.mousePos = (0.0, 0.0)
     
   def set_grid(self, g):
     self.grid = g
@@ -25,9 +26,7 @@ class Controller:
     if key == glfw.KEY_ESCAPE:
         sys.exit()
         
-    elif key == glfw.MOUSE_BUTTON_1 and action == glfw.PRESS and (glfw.get_cursor_pos(window)[0] < 590 and glfw.get_cursor_pos(window)[1] > 90):
-      self.grid.draw_quad(1, 0, 0, mouse_pos(window)[0], mouse_pos(window)[1], 16)
-    
+
     elif key == glfw.MOUSE_BUTTON_1 and action == glfw.PRESS:
       pass
       # Pick color only if you don't already have picked it
@@ -38,4 +37,18 @@ class Controller:
     
     else:
       print('Unknown key')
+      
+    def cursor_pos_callback(window, x, y):
+      self.mousePos = (x, y)
+    
+    def mouse_button_callback(window, button, action, mods):
+      """
+      glfw.MOUSE_BUTTON_1: left click
+      glfw.MOUSE_BUTTON_2: right click
+      glfw.MOUSE_BUTTON_3: scroll click
+      """
+
+      if (action == glfw.PRESS) and (button == glfw.MOUSE):
+        if glfw.get_cursor_pos(window)[0] < 590 and glfw.get_cursor_pos(window)[1] > 90:
+          self.grid.draw_quad(1, 0, 0, mouse_pos(window)[0], mouse_pos(window)[1], 16)
     

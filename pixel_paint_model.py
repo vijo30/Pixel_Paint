@@ -137,15 +137,7 @@ class Grid:
       self.imgData = matrix.reshape((matrix.shape[0] * matrix.shape[1], 3))
   
   def draw(self, pipeline):
-      drawSceneGraphNodeForLines(self.model, pipeline, 'transform')
-    
-  def draw_quad(self, r, g, b, pipeline, x, y, n):
-    gpu_quad = create_gpu(bs.createColorQuad(r, g, b), pipeline)
-    
-    quads = sg.SceneGraphNode('quads')
-    quads.transform = tr.matmul([tr.translate(x, y, 0), tr.scale(2/n+1, 2/n+1, 1)])
-    quads.childs += quads.childs.append(gpu_quad)
-    sg.drawSceneGraphNode(quads, pipeline, 'transform')
+      drawSceneGraphNodeForLines(self.model, pipeline, 'transform')    
     
 
 
