@@ -1,11 +1,41 @@
+from tkinter import image_names
 import numpy as np
 from OpenGL.GL import *
 import OpenGL.GL.shaders
 import glfw
 from PIL import Image, ImageOps
 import sys
+import json
 
 
+
+k = int(sys.argv[1])
+print(k)
+print(type(k))
+
+
+
+
+
+nombre_archivo_json = sys.argv[2]
+file_name = sys.argv[3]
+
+
+print(f'El nombre del archivo json es: {nombre_archivo_json}')
+
+with open(nombre_archivo_json) as json_file:
+    data = json.load(json_file)
+    print(data)  # Queda como un diccionario
+
+    print(f'El transparente es {data["transparent"]}')
+    print(f'La paleta de colores es es {data["palette"]}')
+
+    for index, color in enumerate(data["palette"]):
+        print(f'El color {index} de la paleta es: {color}')
+
+transparent = data["transparent"]
+colors = data["palette"]
+print(transparent[0])
 
 
 
@@ -230,7 +260,7 @@ def save_image(imgData):
   img = Image.fromarray(imgData) 
   img = img.rotate(-90)
   img = ImageOps.mirror(img)
-  img.save("Pixel Paint.png")
+  img.save(file_name)
   img.show()
 
 
@@ -333,29 +363,29 @@ if not window:
 
 
 # Cantidad de pixeles
-k = 20
+#k = 16
 n = k + 1
 adjustment = win_width / n
 
 
 imgData = np.zeros((n, n, 4), dtype=np.uint8)
 imgData[:, :, :] = np.array([88, 88, 88, 255])
-imgData[0:n-1, 0:n-1, :] = np.array([125, 125, 125, 0], dtype=np.uint8)
+imgData[0:n-1, 0:n-1, :] = np.array([127, 127, 127, 0], dtype=np.uint8)
 
 
 
 
 
-Color1  = imgData[n-1:n, 0:1, :] = np.array([255, 0, 0, 255])
-Color2  = imgData[n-1:n, 1:2, :] = np.array([0, 255, 0, 255])
-Color3  = imgData[n-1:n, 2:3, :] = np.array([0, 0, 255, 255])
-Color4  = imgData[n-1:n, 3:4, :] = np.array([255, 255, 0, 255])
-Color5  = imgData[n-1:n, 4:5, :] = np.array([0, 255, 255, 255])
-Color6  = imgData[n-1:n, 5:6, :] = np.array([255, 0, 255, 255])
-Color7  = imgData[n-1:n, 6:7, :] = np.array([255, 255, 255, 255])
-Color8  = imgData[n-1:n, 7:8, :] = np.array([0, 0, 0, 255])
-Color9  = imgData[n-1:n, 8:9, :] = np.array([255, 165, 0, 255])
-Color10 = imgData[n-1:n, 9:10, :] = np.array([125, 125, 125, 0])
+Color0  = imgData[n-1:n, 0:1, :] = np.array([transparent[0], transparent[1], transparent[2], 0])
+Color1  = imgData[n-1:n, 1:2, :] = np.array([colors[0][0], colors[0][1], colors[0][2], 255])
+Color2  = imgData[n-1:n, 2:3, :] = np.array([colors[1][0], colors[1][1], colors[1][2], 255])
+Color3  = imgData[n-1:n, 3:4, :] = np.array([colors[2][0], colors[2][1], colors[2][2], 255])
+Color4  = imgData[n-1:n, 4:5, :] = np.array([0, 255, 255, 255])
+Color5  = imgData[n-1:n, 5:6, :] = np.array([255, 0, 255, 255])
+Color6  = imgData[n-1:n, 6:7, :] = np.array([255, 255, 255, 255])
+Color7  = imgData[n-1:n, 7:8, :] = np.array([0, 0, 0, 255])
+Color8  = imgData[n-1:n, 8:9, :] = np.array([255, 165, 0, 255])
+Color9 = imgData[n-1:n, 9:10, :] = np.array([127, 127, 127, 0])
 
 
 imageSize = (n, n)
@@ -413,7 +443,7 @@ while not glfw.window_should_close(window):
     mousePosY = 2 * (win_height / 2 - controller.mousePos[1]) / win_height
     #print(mousePosX, mousePosY)
     
-    if controller.leftClickOn and int(gridPosX) >= n-1 and int(gridPosY) < 10:
+    if controller.leftClickOn and int(gridPosX) >= n-1 and int(gridPosY) < len(colors)+1:
       r = imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][0]
       g = imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][1]
       b = imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][2]
