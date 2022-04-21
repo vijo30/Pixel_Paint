@@ -2,8 +2,9 @@ import numpy as np
 from OpenGL.GL import *
 import OpenGL.GL.shaders
 import glfw
-from PIL import Image, ImageDraw
+from PIL import Image, ImageOps
 import sys
+
 
 
 
@@ -30,12 +31,7 @@ class GPUShape:
         self.ebo = 0
         self.texture = 0
         self.size = 0
-        
-def create_gpu(shape, pipeline):
-    gpu = es.GPUShape().initBuffers()
-    pipeline.setupVAO(gpu)
-    gpu.fillBuffers(shape.vertices, shape.indices, GL_STATIC_DRAW)
-    return gpu
+
 
 
 class SimpleShaderProgram:
@@ -230,12 +226,12 @@ def createGrid(Nx, Ny):
     return Shape(vertices, indices)
 
 
-def save_image():
-  img = Image.new("RGBA", (win_width, win_height), (0,0,0,0))
-  draw = ImageDraw.Draw(img)
-  
-  img.save(sys.stdout, "PNG")
-  
+def save_image(imgData):
+  img = Image.fromarray(imgData) 
+  img = img.rotate(-90)
+  img = ImageOps.mirror(img)
+  img.save("Pixel Paint.png")
+  img.show()
 
 
 
@@ -251,7 +247,7 @@ def on_key(window, key, scancode, action, mods):
         glfw.set_window_should_close(window, True)
         
     if key == glfw.KEY_S:
-      save_image()
+      save_image(imgData[0:n-1, 0:n-1, :])
         
 
 
@@ -276,7 +272,7 @@ def mouse_button_callback(window, button, action, mods):
             controller.leftClickOn = True
             print("Mouse click - button 1")
             print(imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :])
-            print(imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][0])
+
 
             
 
@@ -307,12 +303,11 @@ def setMatrix(matrix):
     assert (imageSize[1] == matrix.shape[1])
 
     # RGB 8 bits for each channel 
-    assert (matrix.shape[2] == 3)
+    assert (matrix.shape[2] == 4)
     assert (matrix.dtype == np.uint8)
 
     return matrix.reshape((matrix.shape[0] * matrix.shape[1], 3))
     
-
 
 
 
@@ -337,30 +332,30 @@ if not window:
 
 
 
-
 # Cantidad de pixeles
-n = 20
+k = 20
+n = k + 1
 adjustment = win_width / n
 
 
-imgData = np.zeros((n, n, 3), dtype=np.uint8)
-imgData[:, :, :] = np.array([88, 88, 88])
-imgData[0:n-1, 0:n-1, :] = np.array([125, 125, 125], dtype=np.uint8)
+imgData = np.zeros((n, n, 4), dtype=np.uint8)
+imgData[:, :, :] = np.array([88, 88, 88, 255])
+imgData[0:n-1, 0:n-1, :] = np.array([125, 125, 125, 0], dtype=np.uint8)
 
 
 
 
 
-Color1  = imgData[n-1:n, 0:1, :] = np.array([255, 0, 0])
-Color2  = imgData[n-1:n, 1:2, :] = np.array([0, 255, 0])
-Color3  = imgData[n-1:n, 2:3, :] = np.array([0, 0, 255])
-Color4  = imgData[n-1:n, 3:4, :] = np.array([255, 255, 0])
-Color5  = imgData[n-1:n, 4:5, :] = np.array([0, 255, 255])
-Color6  = imgData[n-1:n, 5:6, :] = np.array([255, 0, 255])
-Color7  = imgData[n-1:n, 6:7, :] = np.array([255, 255, 255])
-Color8  = imgData[n-1:n, 7:8, :] = np.array([0, 0, 0])
-Color9  = imgData[n-1:n, 8:9, :] = np.array([125, 125, 125])
-Color10 = imgData[n-1:n, 9:10, :] = np.array([125, 125, 125])
+Color1  = imgData[n-1:n, 0:1, :] = np.array([255, 0, 0, 255])
+Color2  = imgData[n-1:n, 1:2, :] = np.array([0, 255, 0, 255])
+Color3  = imgData[n-1:n, 2:3, :] = np.array([0, 0, 255, 255])
+Color4  = imgData[n-1:n, 3:4, :] = np.array([255, 255, 0, 255])
+Color5  = imgData[n-1:n, 4:5, :] = np.array([0, 255, 255, 255])
+Color6  = imgData[n-1:n, 5:6, :] = np.array([255, 0, 255, 255])
+Color7  = imgData[n-1:n, 6:7, :] = np.array([255, 255, 255, 255])
+Color8  = imgData[n-1:n, 7:8, :] = np.array([0, 0, 0, 255])
+Color9  = imgData[n-1:n, 8:9, :] = np.array([255, 165, 0, 255])
+Color10 = imgData[n-1:n, 9:10, :] = np.array([125, 125, 125, 0])
 
 
 imageSize = (n, n)
@@ -371,6 +366,8 @@ glfw.set_key_callback(window, on_key)
 glfw.set_cursor_pos_callback(window, cursor_pos_callback)
 glfw.set_mouse_button_callback(window, mouse_button_callback)
 glfw.set_scroll_callback(window, scroll_callback)
+
+
 
 
 pipeline = SimpleTextureShaderProgram()
@@ -392,18 +389,18 @@ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
-internalFormat = GL_RGB
-format = GL_RGB
+internalFormat = GL_RGBA
+format = GL_RGBA
 
 glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageSize[1], imageSize[0], 0, format,
               GL_UNSIGNED_BYTE, imgData)
 
-print(setMatrix(imgData))
+
 
 r = 255
 g = 0
 b = 0
-
+a = 255
 
 
 while not glfw.window_should_close(window):
@@ -424,15 +421,15 @@ while not glfw.window_should_close(window):
 
     
     if controller.leftClickOn and (int(gridPosX) < n-1 and int(gridPosY) < n-1):
-      imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :] = np.array([r, g, b], dtype=np.uint8)
+      imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :] = np.array([r, g, b, a], dtype=np.uint8)
       glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageSize[1], imageSize[0], 0, format,
               GL_UNSIGNED_BYTE, imgData)
       
 
     
     
-    if controller.rightClickOn  and (int(gridPosX) < n-2 and int(gridPosY) < n-2):
-      imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :] = np.array([255, 255, 255], dtype=np.uint8)
+    if controller.rightClickOn  and (int(gridPosX) < n-1 and int(gridPosY) < n-1):
+      imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :] = np.array([125, 125, 125, 0], dtype=np.uint8)
       glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageSize[1], imageSize[0], 0, format,
               GL_UNSIGNED_BYTE, imgData)
       
