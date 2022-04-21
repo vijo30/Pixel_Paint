@@ -1,14 +1,9 @@
 import numpy as np
-import grafica.basic_shapes as bs
-import grafica.easy_shaders as es 
-import grafica.gpu_shape as gs
-import grafica.transformations as tr 
-import grafica.scene_graph as sg
 from OpenGL.GL import *
 import OpenGL.GL.shaders
 import glfw
-
-
+from PIL import Image, ImageDraw
+import sys
 
 
 
@@ -35,6 +30,12 @@ class GPUShape:
         self.ebo = 0
         self.texture = 0
         self.size = 0
+        
+def create_gpu(shape, pipeline):
+    gpu = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpu)
+    gpu.fillBuffers(shape.vertices, shape.indices, GL_STATIC_DRAW)
+    return gpu
 
 
 class SimpleShaderProgram:
@@ -185,6 +186,7 @@ class Controller:
         self.fillPolygon = True
         self.showGrid = True
         self.leftClickOn = False
+        self.rightClickOn = False
         self.mousePos = (0.0, 0.0)
 
 controller = Controller()
@@ -228,6 +230,15 @@ def createGrid(Nx, Ny):
     return Shape(vertices, indices)
 
 
+def save_image():
+  img = Image.new("RGBA", (win_width, win_height), (0,0,0,0))
+  draw = ImageDraw.Draw(img)
+  
+  img.save(sys.stdout, "PNG")
+  
+
+
+
 def on_key(window, key, scancode, action, mods):
 
     if action != glfw.PRESS:
@@ -239,10 +250,9 @@ def on_key(window, key, scancode, action, mods):
     elif key == glfw.KEY_ESCAPE:
         glfw.set_window_should_close(window, True)
         
-def on_key(window, key, scancode, action, mods):
-    if action == glfw.PRESS:
-        if key == glfw.KEY_ESCAPE:
-            glfw.set_window_should_close(window, True)
+    if key == glfw.KEY_S:
+      save_image()
+        
 
 
 
@@ -261,14 +271,19 @@ def mouse_button_callback(window, button, action, mods):
     glfw.MOUSE_BUTTON_2: right click
     glfw.MOUSE_BUTTON_3: scroll click
     """
-    if (action == glfw.PRESS or action == glfw.REPEAT):
+    if (action == glfw.PRESS):
         if (button == glfw.MOUSE_BUTTON_1):
             controller.leftClickOn = True
             print("Mouse click - button 1")
+            print(imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :])
+            print(imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][0])
+
             
 
         if (button == glfw.MOUSE_BUTTON_2):
+            controller.rightClickOn = True
             print("Mouse click - button 2:", glfw.get_cursor_pos(window))
+            print(int(gridPosX), int(gridPosY))
 
         if (button == glfw.MOUSE_BUTTON_3):
             print("Mouse click - button 3")
@@ -276,6 +291,9 @@ def mouse_button_callback(window, button, action, mods):
     elif (action == glfw.RELEASE):
         if (button == glfw.MOUSE_BUTTON_1):
             controller.leftClickOn = False
+            
+        if (button == glfw.MOUSE_BUTTON_2):
+          controller.rightClickOn = False
 
 
 def scroll_callback(window, x, y):
@@ -292,7 +310,7 @@ def setMatrix(matrix):
     assert (matrix.shape[2] == 3)
     assert (matrix.dtype == np.uint8)
 
-    imgData = matrix.reshape((matrix.shape[0] * matrix.shape[1], 3))
+    return matrix.reshape((matrix.shape[0] * matrix.shape[1], 3))
     
 
 
@@ -317,6 +335,37 @@ if not window:
 
 
 
+
+
+
+# Cantidad de pixeles
+n = 20
+adjustment = win_width / n
+
+
+imgData = np.zeros((n, n, 3), dtype=np.uint8)
+imgData[:, :, :] = np.array([88, 88, 88])
+imgData[0:n-1, 0:n-1, :] = np.array([125, 125, 125], dtype=np.uint8)
+
+
+
+
+
+Color1  = imgData[n-1:n, 0:1, :] = np.array([255, 0, 0])
+Color2  = imgData[n-1:n, 1:2, :] = np.array([0, 255, 0])
+Color3  = imgData[n-1:n, 2:3, :] = np.array([0, 0, 255])
+Color4  = imgData[n-1:n, 3:4, :] = np.array([255, 255, 0])
+Color5  = imgData[n-1:n, 4:5, :] = np.array([0, 255, 255])
+Color6  = imgData[n-1:n, 5:6, :] = np.array([255, 0, 255])
+Color7  = imgData[n-1:n, 6:7, :] = np.array([255, 255, 255])
+Color8  = imgData[n-1:n, 7:8, :] = np.array([0, 0, 0])
+Color9  = imgData[n-1:n, 8:9, :] = np.array([125, 125, 125])
+Color10 = imgData[n-1:n, 9:10, :] = np.array([125, 125, 125])
+
+
+imageSize = (n, n)
+
+
 glfw.make_context_current(window)
 glfw.set_key_callback(window, on_key)
 glfw.set_cursor_pos_callback(window, cursor_pos_callback)
@@ -324,25 +373,9 @@ glfw.set_mouse_button_callback(window, mouse_button_callback)
 glfw.set_scroll_callback(window, scroll_callback)
 
 
-
-
-
-W = 20
-H = 20
-imgData = np.zeros((W, H, 3), dtype=np.uint8)
-imgData[:, :, :] = np.array([237, 140, 140], dtype=np.uint8)
-imgData[0:16, 0:16, :] = np.array([125, 125, 125], dtype=np.uint8)
-imgData[0:4, 0:4, :] = np.array([0, 0, 255], dtype=np.uint8)
-imgData[0:12, 4:8, :] = np.array([255, 0, 0], dtype=np.uint8)
-imgData[4:12, 0:4, :] = np.array([255, 255, 255], dtype=np.uint8)
-
-imageSize = (W, H)
-
-
 pipeline = SimpleTextureShaderProgram()
 
 colorPipeline = SimpleShaderProgram()
-
 
 
 gpuShape = toGPUShape(createGPUTextureQuad())
@@ -365,23 +398,44 @@ format = GL_RGB
 glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageSize[1], imageSize[0], 0, format,
               GL_UNSIGNED_BYTE, imgData)
 
+print(setMatrix(imgData))
 
-
-
+r = 255
+g = 0
+b = 0
 
 
 
 while not glfw.window_should_close(window):
     glfw.poll_events()
     
-    
+    gridPosX = controller.mousePos[0] / adjustment
+    gridPosY = controller.mousePos[1] / adjustment
     # Getting the mouse location in opengl coordinates
     mousePosX = 2 * (controller.mousePos[0] - win_width / 2) / win_width
     mousePosY = 2 * (win_height / 2 - controller.mousePos[1]) / win_height
-    print(mousePosX, mousePosY)
+    #print(mousePosX, mousePosY)
     
-    if controller.leftClickOn:
-      pass
+    if controller.leftClickOn and int(gridPosX) >= n-1 and int(gridPosY) < 10:
+      r = imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][0]
+      g = imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][1]
+      b = imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][2]
+
+
+    
+    if controller.leftClickOn and (int(gridPosX) < n-1 and int(gridPosY) < n-1):
+      imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :] = np.array([r, g, b], dtype=np.uint8)
+      glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageSize[1], imageSize[0], 0, format,
+              GL_UNSIGNED_BYTE, imgData)
+      
+
+    
+    
+    if controller.rightClickOn  and (int(gridPosX) < n-2 and int(gridPosY) < n-2):
+      imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :] = np.array([255, 255, 255], dtype=np.uint8)
+      glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageSize[1], imageSize[0], 0, format,
+              GL_UNSIGNED_BYTE, imgData)
+      
     
     if controller.fillPolygon:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
