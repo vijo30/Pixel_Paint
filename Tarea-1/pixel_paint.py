@@ -1,4 +1,3 @@
-from tkinter import image_names
 import numpy as np
 from OpenGL.GL import *
 import OpenGL.GL.shaders
