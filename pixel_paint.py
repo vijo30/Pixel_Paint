@@ -245,7 +245,7 @@ def createGrid(Nx, Ny):
 
     return Shape(vertices, indices)
 
-
+# save image
 def save_image(imgData):
   img = Image.fromarray(imgData) 
   img = img.rotate(-90)
