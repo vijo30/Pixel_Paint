@@ -298,7 +298,8 @@ def mouse_button_callback(window, button, action, mods):
 
         if (button == glfw.MOUSE_BUTTON_2):
             controller.rightClickOn = True
-            print("Mouse click - button 2:", int(gridPosX), int(gridPosY))
+            print("Mouse click - button 2:")
+            print(int(gridPosX), int(gridPosY))
 
         if (button == glfw.MOUSE_BUTTON_3):
             print("Mouse click - button 3")
@@ -318,11 +319,9 @@ def mouse_button_callback(window, button, action, mods):
 
 
 
+win_height = 600
+win_width = 600
 
-
-
-win_height = 800
-win_width = 800
 # Initialize glfw
 if not glfw.init():
   raise Exception("glfw can not be initialized!")
@@ -350,25 +349,22 @@ def n_adjustment(k):
 
 
 
-# Cantidad de pixeles
-#k = 16
+# Pixel quantity
 n = n_adjustment(k)
 adjustment = win_width / n
 
-
+# Default
 imgData = np.zeros((n, n, 4), dtype=np.uint8)
 imgData[:, :, :] = np.array([88, 88, 88, 255])
 imgData[0:k, 0:k, :] = np.array([transparent[0], transparent[1], transparent[2], 0], dtype=np.uint8)
 
-
+# Add color palette
 def addColorPalette(palette):
     for i in range(0, len(palette)):
         imgData[n-1:n, 0:1, :] = np.array([transparent[0], transparent[1], transparent[2], 0])
         imgData[n-1:n, i+1:i+2, :] = np.array([palette[i][0], palette[i][1], palette[i][2], 255])
 
     
-
-
 
 addColorPalette(colors)
 
