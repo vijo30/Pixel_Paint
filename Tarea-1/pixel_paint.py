@@ -327,16 +327,7 @@ def scroll_callback(window, x, y):
 
 
 
-def setMatrix(matrix):
-    assert (imageSize[0] == matrix.shape[0])
-    assert (imageSize[1] == matrix.shape[1])
 
-    # RGB 8 bits for each channel 
-    assert (matrix.shape[2] == 4)
-    assert (matrix.dtype == np.uint8)
-
-    return matrix.reshape((matrix.shape[0] * matrix.shape[1], 3))
-    
 
 
 
@@ -372,19 +363,13 @@ imgData[:, :, :] = np.array([88, 88, 88, 255])
 imgData[0:n-1, 0:n-1, :] = np.array([127, 127, 127, 0], dtype=np.uint8)
 
 
+def addColorPalette(palette,n):
+    for i in range(0, len(palette)):
+        imgData[n-1:n, i+1:i+2, :] = np.array([palette[i][0], palette[i][1], palette[i][2], 255])
 
 
-
-Color0  = imgData[n-1:n, 0:1, :] = np.array([transparent[0], transparent[1], transparent[2], 0])
-Color1  = imgData[n-1:n, 1:2, :] = np.array([colors[0][0], colors[0][1], colors[0][2], 255])
-Color2  = imgData[n-1:n, 2:3, :] = np.array([colors[1][0], colors[1][1], colors[1][2], 255])
-Color3  = imgData[n-1:n, 3:4, :] = np.array([colors[2][0], colors[2][1], colors[2][2], 255])
-Color4  = imgData[n-1:n, 4:5, :] = np.array([0, 255, 255, 255])
-Color5  = imgData[n-1:n, 5:6, :] = np.array([255, 0, 255, 255])
-Color6  = imgData[n-1:n, 6:7, :] = np.array([255, 255, 255, 255])
-Color7  = imgData[n-1:n, 7:8, :] = np.array([0, 0, 0, 255])
-Color8  = imgData[n-1:n, 8:9, :] = np.array([255, 165, 0, 255])
-Color9 = imgData[n-1:n, 9:10, :] = np.array([127, 127, 127, 0])
+Transparent  = imgData[n-1:n, 0:1, :] = np.array([transparent[0], transparent[1], transparent[2], 0])
+addColorPalette(colors,n)
 
 
 imageSize = (n, n)
@@ -435,12 +420,10 @@ a = 255
 while not glfw.window_should_close(window):
     glfw.poll_events()
     
+    # Getting the mouse location relative to the grid
     gridPosX = controller.mousePos[0] / adjustment
     gridPosY = controller.mousePos[1] / adjustment
-    # Getting the mouse location in opengl coordinates
-    mousePosX = 2 * (controller.mousePos[0] - win_width / 2) / win_width
-    mousePosY = 2 * (win_height / 2 - controller.mousePos[1]) / win_height
-    #print(mousePosX, mousePosY)
+
     
     if controller.leftClickOn and int(gridPosX) >= n-1 and int(gridPosY) < len(colors)+1:
       r = imgData[int(gridPosX) : int(gridPosX) + 1 , int(gridPosY) : int(gridPosY) + 1, :][0][0][0]
